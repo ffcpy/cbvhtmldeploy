@@ -1167,6 +1167,7 @@
           <h2>Ficha completa!</h2>
           <p>Todas as seções foram preenchidas.<br>Clique abaixo para gerar o PDF com o nome do paciente.</p>
           <button class="btn btn-generate" onclick="generatePDF()">⬇ Gerar PDF da Anamnese</button>
+          <button class="btn btn-secondary" onclick="resetAnamnese()" style="margin-top:12px">↺ Nova Anamnese</button>
         </div>
       </div>
     </div>
@@ -1304,6 +1305,30 @@ function getChecked(id) {
 }
 
 // PDF GENERATION
+function resetAnamnese() {
+  if (!confirm("Tem certeza que deseja iniciar uma nova anamnese? Todos os dados preenchidos serão apagados.")) return;
+
+  // Limpa todos os inputs, selects e textareas
+  document.querySelectorAll("input, select, textarea").forEach(el => {
+    if (el.type === "checkbox" || el.type === "radio") {
+      el.checked = false;
+    } else {
+      el.value = "";
+    }
+  });
+
+  // Remove marcação de "completed" de todos os nav items
+  document.querySelectorAll(".nav-item").forEach(item => {
+    item.classList.remove("completed");
+  });
+
+  // Limpa sessionStorage
+  sessionStorage.clear();
+
+  // Volta para a primeira seção usando a função nativa
+  goTo(0);
+}
+
 async function generatePDF() {
   const { jsPDF } = window.jspdf;
   const nome = getVal('nome') || 'Paciente';
