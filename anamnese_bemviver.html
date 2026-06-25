@@ -1,0 +1,1598 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Ficha de Anamnese Multidisciplinar</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<style>
+  :root {
+    --cream: #F7F4EF;
+    --warm-white: #FDFCFA;
+    --sage: #7A9E7E;
+    --sage-dark: #5C7D60;
+    --terracota: #C4714A;
+    --charcoal: #2C2C2C;
+    --mid-gray: #6B6B6B;
+    --light-gray: #D6D2CB;
+    --border: #E2DDD6;
+    --section-bg: #FFFFFF;
+    --accent-line: #C4714A;
+    --blue: #007bff;
+    --green: #28a745;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--cream);
+    color: var(--charcoal);
+    min-height: 100vh;
+  }
+
+  /* HEADER */
+  .header {
+    background: var(--blue);
+    color: var(--cream);
+    padding: 32px 48px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    box-shadow: 0 15px 20px rgba(0,0,0,0.2);
+  }
+  .header-left h1 {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.5rem;
+    font-weight: 700;
+    letter-spacing: 0.02em;
+  }
+  .header-left p {
+    font-size: 0.8rem;
+    color: var(--light-gray);
+    margin-top: 3px;
+    font-weight: 300;
+  }
+  .progress-wrap {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+  }
+  .progress-label {
+    font-size: 0.75rem;
+    color: var(--light-gray);
+    white-space: nowrap;
+  }
+  .progress-bar-outer {
+    width: 180px;
+    height: 4px;
+    background: rgba(255,255,255,0.15);
+    border-radius: 2px;
+    overflow: hidden;
+  }
+  .progress-bar-inner {
+    height: 100%;
+    background: var(--cream);
+    border-radius: 2px;
+    transition: width 0.5s ease;
+  }
+
+  /* SIDEBAR NAV */
+  .layout {
+    display: flex;
+    min-height: calc(100vh - 88px);
+  }
+  .sidebar {
+    width: 260px;
+    min-width: 260px;
+    background: var(--warm-white);
+    border-right: 1px solid var(--border);
+    padding: 24px 0;
+    position: sticky;
+    top: 88px;
+    height: calc(100vh - 88px);
+    overflow-y: auto;
+  }
+  .sidebar-title {
+    font-size: 0.65rem;
+    font-weight: 600;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--mid-gray);
+    padding: 0 24px 16px;
+  }
+  .nav-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 10px 24px;
+    cursor: pointer;
+    transition: all 0.2s;
+    border-left: 3px solid transparent;
+    font-size: 0.82rem;
+    color: var(--mid-gray);
+    font-weight: 400;
+  }
+  .nav-item:hover { background: var(--cream); color: var(--blue); }
+  .nav-item.active {
+    border-left-color: var(--blue);
+    background: var(--cream);
+    color: var(--blue);
+    font-weight: 500;
+  }
+  /* aqui*/
+  .nav-item.completed { color: var(--green); }
+  .nav-item.completed .nav-dot { background: var(--blue); }
+  .nav-dot {
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    background: var(--light-gray);
+    flex-shrink: 0;
+    transition: background 0.3s;
+  }
+  .nav-item.active .nav-dot { background: var(--blue); }
+
+  /* MAIN CONTENT */
+  .main {
+    flex: 1;
+    padding: 48px;
+    max-width: 780px;
+  }
+
+  .section {
+    display: none;
+    animation: fadeIn 0.35s ease;
+  }
+  .section.active { display: block; }
+
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(12px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .section-header {
+    margin-bottom: 36px;
+  }
+  .section-tag {
+    font-size: 0.65rem;
+    font-weight: 600;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--blue);
+    margin-bottom: 8px;
+  }
+  .section-title {
+    font-family: 'Playfair Display', serif;
+    font-size: 2rem;
+    font-weight: 700;
+    color: var(--charcoal);
+    line-height: 1.2;
+  }
+  .section-divider {
+    width: 48px;
+    height: 2px;
+    background: var(--blue);
+    margin-top: 16px;
+  }
+
+  /* FORM ELEMENTS */
+  .field-group {
+    background: var(--section-bg);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 28px;
+    margin-bottom: 20px;
+    box-shadow: 0 20px 30px rgba(0,0,0,0.05);
+  }
+  .field-group-title {
+    font-size: 0.7rem;
+    font-weight: 600;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--green);
+    margin-bottom: 20px;
+    padding-bottom: 12px;
+    border-bottom: 1px solid var(--border);
+  }
+  .field {
+    margin-bottom: 20px;
+  }
+  .field:last-child { margin-bottom: 0; }
+  label {
+    display: block;
+    font-size: 0.82rem;
+    font-weight: 500;
+    color: var(--charcoal);
+    margin-bottom: 7px;
+  }
+  label .req { color: var(--terracota); margin-left: 2px; }
+
+  input[type="text"],
+  input[type="date"],
+  input[type="number"],
+  input[type="tel"],
+  textarea,
+  select {
+    width: 100%;
+    padding: 11px 14px;
+    border: 1.5px solid var(--border);
+    border-radius: 8px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.88rem;
+    color: var(--charcoal);
+    background: var(--warm-white);
+    transition: border-color 0.2s, box-shadow 0.2s;
+    outline: none;
+    appearance: none;
+  }
+  input:focus, textarea:focus, select:focus {
+    border-color: var(--sage);
+    box-shadow: 0 0 0 3px rgba(122,158,126,0.15);
+  }
+  textarea { resize: vertical; min-height: 90px; line-height: 1.5; }
+  select { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%236B6B6B' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 14px center; padding-right: 36px; }
+
+  /* RADIO/CHECKBOX GROUPS */
+  .radio-group, .checkbox-group {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-top: 2px;
+  }
+  .radio-btn, .check-btn {
+    position: relative;
+  }
+  .radio-btn input, .check-btn input {
+    position: absolute;
+    opacity: 0;
+    width: 0; height: 0;
+  }
+  .radio-btn label, .check-btn label {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 16px;
+    border: 1.5px solid var(--border);
+    border-radius: 20px;
+    cursor: pointer;
+    font-size: 0.82rem;
+    font-weight: 400;
+    transition: all 0.2s;
+    background: var(--warm-white);
+    user-select: none;
+    margin: 0;
+  }
+  .radio-btn input:checked + label,
+  .check-btn input:checked + label {
+    border-color: var(--sage);
+    background: rgba(122,158,126,0.1);
+    color: var(--blue);
+    font-weight: 500;
+  }
+
+
+  /* CONDITIONAL BLOCKS */
+  .conditional { display: none; margin-top: 16px; padding: 16px; background: var(--cream); border-radius: 8px; border-left: 3px solid var(--sage); }
+  .conditional.show { display: block; }
+
+  /* TWO-COL GRID */
+  .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+
+  /* NAVIGATION BUTTONS */
+  .nav-buttons {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 40px;
+    padding-top: 24px;
+    border-top: 1px solid var(--border);
+  }
+  .btn {
+    padding: 12px 28px;
+    border-radius: 8px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.88rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+    border: none;
+    letter-spacing: 0.02em;
+  }
+  .btn-primary {
+    background: var(--charcoal);
+    color: var(--cream);
+  }
+  .btn-primary:hover { background: #0080ff; transform: translateY(-1px); box-shadow: 0 4px 16px rgba(0,0,0,0.15); }
+  .btn-secondary {
+    background: transparent;
+    color: var(--mid-gray);
+    border: 1.5px solid var(--border);
+  }
+  .btn-secondary:hover { border-color: var(--charcoal); color: var(--charcoal); }
+  .btn-generate {
+    background: var(--green);
+    color: white;
+    padding: 14px 36px;
+    font-size: 0.95rem;
+  }
+  .btn-generate:hover { background: #0a9dff; transform: translateY(-1px); box-shadow: 0 6px 20px rgba(196,113,74,0.35); }
+
+  /* FINISH SCREEN */
+  .finish-screen {
+    text-align: center;
+    padding: 60px 40px;
+  }
+  .finish-icon {
+    width: 72px; height: 72px;
+    background: var(--sage);
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    margin: 0 auto 24px;
+    font-size: 2rem;
+  }
+  .finish-screen h2 {
+    font-family: 'Playfair Display', serif;
+    font-size: 2rem;
+    margin-bottom: 12px;
+  }
+  .finish-screen p {
+    color: var(--mid-gray);
+    font-size: 0.95rem;
+    margin-bottom: 32px;
+    line-height: 1.6;
+  }
+
+  /* TOAST */
+  .toast {
+    position: fixed;
+    bottom: 32px; right: 32px;
+    background: var(--charcoal);
+    color: var(--cream);
+    padding: 14px 22px;
+    border-radius: 10px;
+    font-size: 0.85rem;
+    font-weight: 500;
+    opacity: 0;
+    transform: translateY(10px);
+    transition: all 0.3s;
+    z-index: 999;
+    pointer-events: none;
+  }
+  .toast.show { opacity: 1; transform: translateY(0); }
+
+  /* SUBSECTION DIVIDER */
+  .subsection-label {
+    font-size: 0.72rem;
+    font-weight: 600;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--terracota);
+    margin: 24px 0 12px;
+  }
+
+  @media(max-width: 900px) {
+    .sidebar { display: none; }
+    .main { padding: 24px; }
+    .header { padding: 20px 24px; }
+    .grid-2 { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+
+<header class="header">
+  <div class="header-left">
+    <h1>Ficha de Anamnese Multidisciplinar</h1>
+    <p>Clinica Bem Viver &mdash; Preenchimento guiado por etapas</p>
+  </div>
+  <div class="progress-wrap">
+    <span class="progress-label" id="progress-label">Etapa 1 de 14</span>
+    <div class="progress-bar-outer">
+      <div class="progress-bar-inner" id="progress-bar" style="width: 7%"></div>
+    </div>
+  </div>
+</header>
+
+<div class="layout">
+  <!-- SIDEBAR -->
+  <nav class="sidebar">
+    <div class="sidebar-title">Seções</div>
+    <div id="nav-list"></div>
+  </nav>
+
+  <!-- MAIN -->
+  <main class="main">
+
+    <!-- S1: IDENTIFICAÇÃO DA CRIANÇA -->
+    <div class="section active" data-section="0">
+      <div class="section-header">
+        <div class="section-tag">Seção 1</div>
+        <h2 class="section-title">Identificação da Criança</h2>
+        <div class="section-divider"></div>
+      </div>
+      <div class="field-group">
+        <div class="field-group-title">Dados Pessoais</div>
+        <div class="field">
+          <label>Nome completo <span class="req">*</span></label>
+          <input type="text" id="nome" placeholder="Nome completo da criança">
+        </div>
+        <div class="grid-2">
+          <div class="field">
+            <label>Data de nascimento <span class="req">*</span></label>
+            <input type="date" id="data_nasc">
+          </div>
+          <div class="field">
+            <label>Idade <span class="req">*</span></label>
+            <input type="number" id="idade" min="0" max="99" placeholder="Ex: 7">
+          </div>
+        </div>
+        <div class="field">
+          <label>Gênero <span class="req">*</span></label>
+          <div class="radio-group">
+            <div class="radio-btn"><input type="radio" name="genero" id="g_m" value="M"><label for="g_m">Masculino</label></div>
+            <div class="radio-btn"><input type="radio" name="genero" id="g_f" value="F"><label for="g_f">Feminino</label></div>
+          </div>
+        </div>
+        <div class="field">
+          <label>Endereço <span class="req">*</span></label>
+          <input type="text" id="endereco" placeholder="Rua, número, bairro, cidade">
+        </div>
+        <div class="field">
+          <label>Naturalidade <span class="req">*</span></label>
+          <input type="text" id="naturalidade" placeholder="Cidade de nascimento">
+        </div>
+      </div>
+
+      <div class="field-group">
+        <div class="field-group-title">Identificação dos Responsáveis</div>
+        <div class="field">
+          <label>Nome da mãe</label>
+          <input type="text" id="nome_mae" placeholder="Nome completo">
+        </div>
+        <div class="grid-2">
+          <div class="field">
+            <label>Profissão</label>
+            <input type="text" id="prof_mae" placeholder="Profissão">
+          </div>
+          <div class="field">
+            <label>Telefone</label>
+            <input type="tel" id="tel_mae" placeholder="(11) 90000-0000">
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- S2: DADOS ESCOLARES -->
+    <div class="section" data-section="1">
+      <div class="section-header">
+        <div class="section-tag">Seção 2</div>
+        <h2 class="section-title">Dados Escolares</h2>
+        <div class="section-divider"></div>
+      </div>
+      <div class="field-group">
+        <div class="field-group-title">Escola Atual</div>
+        <div class="field">
+          <label>Nome da escola <span class="req">*</span></label>
+          <input type="text" id="escola" placeholder="Nome da instituição">
+        </div>
+        <div class="field">
+          <label>Tipo de escola</label>
+          <div class="radio-group">
+            <div class="radio-btn"><input type="radio" name="tipo_escola" id="te_1" value="Particular"><label for="te_1">Particular</label></div>
+            <div class="radio-btn"><input type="radio" name="tipo_escola" id="te_2" value="Pública"><label for="te_2">Pública</label></div>
+            <div class="radio-btn"><input type="radio" name="tipo_escola" id="te_3" value="Bilíngue"><label for="te_3">Bilíngue</label></div>
+          </div>
+        </div>
+        <div class="field">
+          <label>Período</label>
+          <div class="radio-group">
+            <div class="radio-btn"><input type="radio" name="periodo" id="p_1" value="Manhã"><label for="p_1">Manhã</label></div>
+            <div class="radio-btn"><input type="radio" name="periodo" id="p_2" value="Tarde"><label for="p_2">Tarde</label></div>
+            <div class="radio-btn"><input type="radio" name="periodo" id="p_3" value="Integral"><label for="p_3">Integral</label></div>
+          </div>
+        </div>
+        <div class="field">
+          <label>Professor(a)</label>
+          <input type="text" id="professor" placeholder="Nome do professor responsável">
+        </div>
+      </div>
+
+      <div class="field-group">
+        <div class="field-group-title">Histórico Escolar</div>
+        <div class="field">
+          <label>Possui Acompanhante Terapêutico?</label>
+          <div class="radio-group">
+            <div class="radio-btn"><input type="radio" name="at_escola" id="at_s" value="Sim" onchange="toggleConditional('at_detalhe', true)"><label for="at_s">Sim</label></div>
+            <div class="radio-btn"><input type="radio" name="at_escola" id="at_n" value="Não" onchange="toggleConditional('at_detalhe', false)"><label for="at_n">Não</label></div>
+          </div>
+          <div class="conditional" id="at_detalhe">
+            <div class="field">
+              <label>Tipo de acompanhante</label>
+              <div class="radio-group">
+                <div class="radio-btn"><input type="radio" name="tipo_at" id="at_t" value="Tutora"><label for="at_t">Tutora</label></div>
+                <div class="radio-btn"><input type="radio" name="tipo_at" id="at_aux" value="Auxiliar"><label for="at_aux">Auxiliar</label></div>
+              </div>
+            </div>
+            <div class="field">
+              <label>Tempo que permanece com a criança</label>
+              <input type="text" id="at_tempo" placeholder="Ex: 4 horas por dia">
+            </div>
+          </div>
+        </div>
+        <div class="field">
+          <label>Dificuldades acadêmicas relatadas</label>
+          <textarea id="dif_acad" placeholder="Leitura, escrita, matemática, outras..."></textarea>
+        </div>
+        <div class="field">
+          <label>Comportamento na sala de aula</label>
+          <textarea id="comp_sala" placeholder="Comportamento com professor, colegas, participação..."></textarea>
+        </div>
+        <div class="field">
+          <label>Relação com professores e coordenação</label>
+          <select id="rel_prof">
+            <option value="">Selecione...</option>
+            <option value="Boa">Boa</option>
+            <option value="Média">Média</option>
+            <option value="Ruim">Ruim</option>
+          </select>
+        </div>
+        <div class="field">
+          <label>Adaptações / ACPs / Planos Pedagógicos existentes</label>
+          <textarea id="acps" placeholder="Descreva os recursos pedagógicos em uso..."></textarea>
+        </div>
+        <div class="field">
+          <label>Uso de recursos escolares</label>
+          <div class="radio-group">
+            <div class="radio-btn"><input type="radio" name="rec_escola" id="re_s" value="Sim"><label for="re_s">Sim (monitoria, sala de apoio, AVA, etc.)</label></div>
+            <div class="radio-btn"><input type="radio" name="rec_escola" id="re_n" value="Não"><label for="re_n">Não</label></div>
+          </div>
+        </div>
+        <div class="field">
+          <label>Transporte escola-casa</label>
+          <input type="text" id="transporte" placeholder="Quem acompanha / meio de transporte">
+        </div>
+      </div>
+    </div>
+
+    <!-- S3: DIAGNÓSTICO -->
+    <div class="section" data-section="2">
+      <div class="section-header">
+        <div class="section-tag">Seção 3</div>
+        <h2 class="section-title">Quadro Diagnóstico</h2>
+        <div class="section-divider"></div>
+      </div>
+      <div class="field-group">
+        <div class="field">
+          <label>Queixa principal <span class="req">*</span></label>
+          <textarea id="queixa" placeholder="Motivo da procura de atendimento e principais demandas dos pais..."></textarea>
+        </div>
+        <div class="grid-2">
+          <div class="field">
+            <label>Idade ao diagnóstico</label>
+            <input type="number" id="idade_diag" min="0" placeholder="anos">
+          </div>
+          <div class="field">
+            <label>Profissional que diagnosticou</label>
+            <input type="text" id="prof_diag" placeholder="Especialidade e nome">
+          </div>
+        </div>
+        <div class="field">
+          <label>Tratamentos já realizados</label>
+          <textarea id="tratamentos" placeholder="Terapias, medicamentos anteriores, internações..."></textarea>
+        </div>
+      </div>
+
+      <div class="field-group">
+        <div class="field-group-title">Medicação</div>
+        <div class="field">
+          <label>Faz uso de medicação?</label>
+          <div class="radio-group">
+            <div class="radio-btn"><input type="radio" name="medicacao" id="med_s" value="Sim" onchange="toggleConditional('med_detalhe', true)"><label for="med_s">Sim</label></div>
+            <div class="radio-btn"><input type="radio" name="medicacao" id="med_n" value="Não" onchange="toggleConditional('med_detalhe', false)"><label for="med_n">Não</label></div>
+          </div>
+          <div class="conditional" id="med_detalhe">
+            <div class="grid-2">
+              <div class="field"><label>Nome do medicamento</label><input type="text" id="med_nome"></div>
+              <div class="field"><label>Dosagem</label><input type="text" id="med_dose" placeholder="Ex: 10mg"></div>
+            </div>
+            <div class="field"><label>Horário</label><input type="text" id="med_horario" placeholder="Ex: 8h e 12h"></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="field-group">
+        <div class="field-group-title">Saúde Geral</div>
+        <div class="field">
+          <label>Alergias ou dietas específicas?</label>
+          <div class="radio-group">
+            <div class="radio-btn"><input type="radio" name="alergia" id="al_s" value="Sim" onchange="toggleConditional('al_detalhe', true)"><label for="al_s">Sim</label></div>
+            <div class="radio-btn"><input type="radio" name="alergia" id="al_n" value="Não" onchange="toggleConditional('al_detalhe', false)"><label for="al_n">Não</label></div>
+          </div>
+          <div class="conditional" id="al_detalhe">
+            <div class="field"><label>Quais?</label><input type="text" id="al_quais"></div>
+          </div>
+        </div>
+        <div class="field">
+          <label>Vacinação em dia?</label>
+          <div class="radio-group">
+            <div class="radio-btn"><input type="radio" name="vacina" id="v_s" value="Sim"><label for="v_s">Sim</label></div>
+            <div class="radio-btn"><input type="radio" name="vacina" id="v_n" value="Não"><label for="v_n">Não</label></div>
+          </div>
+        </div>
+        <div class="field">
+          <label>Condições médicas crônicas?</label>
+          <div class="radio-group">
+            <div class="radio-btn"><input type="radio" name="cronicas" id="cr_s" value="Sim" onchange="toggleConditional('cr_detalhe', true)"><label for="cr_s">Sim</label></div>
+            <div class="radio-btn"><input type="radio" name="cronicas" id="cr_n" value="Não" onchange="toggleConditional('cr_detalhe', false)"><label for="cr_n">Não</label></div>
+          </div>
+          <div class="conditional" id="cr_detalhe">
+            <div class="field"><label>Quais? (asma, diabetes, refluxo, etc.)</label><input type="text" id="cr_quais"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- S4: GESTAÇÃO E NASCIMENTO -->
+    <div class="section" data-section="3">
+      <div class="section-header">
+        <div class="section-tag">Seção 4</div>
+        <h2 class="section-title">Gestação e Nascimento</h2>
+        <div class="section-divider"></div>
+      </div>
+      <div class="field-group">
+        <div class="field">
+          <label>Gestação</label>
+          <textarea id="gestacao" placeholder="Planejada, complicações, medicações, consumo de substâncias..."></textarea>
+        </div>
+        <div class="field">
+          <label>Tipo de parto</label>
+          <input type="text" id="parto" placeholder="Ex: cesárea, normal, prematuro, fórceps...">
+        </div>
+        <div class="grid-2">
+          <div class="field">
+            <label>Peso ao nascer (kg)</label>
+            <input type="number" id="peso_nasc" step="0.1" min="0" max="10" placeholder="Ex: 3.2">
+          </div>
+          <div class="field">
+            <label>Internação hospitalar ao nascer?</label>
+            <div class="radio-group">
+              <div class="radio-btn"><input type="radio" name="intern_nasc" id="in_s" value="Sim"><label for="in_s">Sim</label></div>
+              <div class="radio-btn"><input type="radio" name="intern_nasc" id="in_n" value="Não"><label for="in_n">Não</label></div>
+            </div>
+          </div>
+        </div>
+        <div class="field">
+          <label>Tempo de aleitamento</label>
+          <input type="text" id="aleitamento" placeholder="Ex: 6 meses, 1 ano...">
+        </div>
+      </div>
+
+      <div class="field-group">
+        <div class="field-group-title">Desenvolvimento Neuropsicomotor</div>
+        <p style="font-size:0.82rem; color: var(--mid-gray); margin-bottom: 16px;">Indique a idade aproximada ao atingir cada marco:</p>
+        <div class="grid-2">
+          <div class="field"><label>Sentar</label><input type="text" id="dev_sentar" placeholder="Ex: 6 meses"></div>
+          <div class="field"><label>Engatinhar</label><input type="text" id="dev_engatinhar" placeholder="Ex: 9 meses"></div>
+          <div class="field"><label>Andar</label><input type="text" id="dev_andar" placeholder="Ex: 12 meses"></div>
+          <div class="field"><label>Primeiras palavras</label><input type="text" id="dev_palavras" placeholder="Ex: 14 meses"></div>
+          <div class="field"><label>Controle de fralda</label><input type="text" id="dev_fralda" placeholder="Ex: 2 anos e meio"></div>
+        </div>
+        <div class="field">
+          <label>Dificuldades motoras ou de coordenação</label>
+          <textarea id="dif_motora" placeholder="Descreva se houver..."></textarea>
+        </div>
+        <div class="field">
+          <label>Atrasos identificados?</label>
+          <div class="radio-group">
+            <div class="radio-btn"><input type="radio" name="atrasos" id="atr_s" value="Sim"><label for="atr_s">Sim</label></div>
+            <div class="radio-btn"><input type="radio" name="atrasos" id="atr_n" value="Não"><label for="atr_n">Não</label></div>
+          </div>
+        </div>
+        <div class="field">
+          <label>Histórico de convulsões, traumas ou internações?</label>
+          <div class="radio-group">
+            <div class="radio-btn"><input type="radio" name="conv" id="conv_s" value="Sim" onchange="toggleConditional('conv_detalhe', true)"><label for="conv_s">Sim</label></div>
+            <div class="radio-btn"><input type="radio" name="conv" id="conv_n" value="Não" onchange="toggleConditional('conv_detalhe', false)"><label for="conv_n">Não</label></div>
+          </div>
+          <div class="conditional" id="conv_detalhe">
+            <div class="field"><label>Quais?</label><textarea id="conv_quais" placeholder="Descreva..."></textarea></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- S5: ATENDIMENTOS ATUAIS -->
+    <div class="section" data-section="4">
+      <div class="section-header">
+        <div class="section-tag">Seção 5</div>
+        <h2 class="section-title">Atendimentos Atuais</h2>
+        <div class="section-divider"></div>
+      </div>
+      <!-- PSIQUIATRA -->
+      <div class="field-group">
+        <div class="field-group-title">Psiquiatra</div>
+        <div class="grid-2">
+          <div class="field"><label>Nome</label><input type="text" id="psiq_nome"></div>
+          <div class="field"><label>Contato</label><input type="tel" id="psiq_tel"></div>
+        </div>
+        <div class="field"><label>Diagnóstico atual e há quanto tempo?</label><textarea id="psiq_diag"></textarea></div>
+        <div class="field"><label>Frequência de acompanhamento</label><input type="text" id="psiq_freq"></div>
+      </div>
+      <!-- NEUROPEDIATRA -->
+      <div class="field-group">
+        <div class="field-group-title">Neuropediatra</div>
+        <div class="grid-2">
+          <div class="field"><label>Nome</label><input type="text" id="neuro_nome"></div>
+          <div class="field"><label>Contato</label><input type="tel" id="neuro_tel"></div>
+        </div>
+        <div class="field"><label>Laudos / relatórios / avaliações recentes?</label>
+          <div class="radio-group">
+            <div class="radio-btn"><input type="radio" name="laudos" id="lau_s" value="Sim"><label for="lau_s">Sim</label></div>
+            <div class="radio-btn"><input type="radio" name="laudos" id="lau_n" value="Não"><label for="lau_n">Não</label></div>
+          </div>
+        </div>
+        <div class="field"><label>Recomendações específicas</label><textarea id="neuro_rec"></textarea></div>
+        <div class="field"><label>Sinais neurológicos / observações motoras</label><textarea id="neuro_sinais"></textarea></div>
+      </div>
+      <!-- PSICÓLOGO -->
+      <div class="field-group">
+        <div class="field-group-title">Psicólogo</div>
+        <div class="grid-2">
+          <div class="field"><label>Nome</label><input type="text" id="psico_nome"></div>
+          <div class="field"><label>Contato</label><input type="tel" id="psico_tel"></div>
+        </div>
+        <div class="field"><label>Objetivos do acompanhamento</label><textarea id="psico_obj"></textarea></div>
+        <div class="field"><label>Estratégias / intervenções em uso</label><textarea id="psico_est"></textarea></div>
+        <div class="field"><label>Frequência e adesão</label><input type="text" id="psico_freq"></div>
+      </div>
+      <!-- FONOAUDIÓLOGO -->
+      <div class="field-group">
+        <div class="field-group-title">Fonoaudiólogo</div>
+        <div class="grid-2">
+          <div class="field"><label>Nome</label><input type="text" id="fono_nome"></div>
+          <div class="field"><label>Contato</label><input type="tel" id="fono_tel"></div>
+        </div>
+        <div class="field"><label>Nível atual de linguagem</label><textarea id="fono_ling" placeholder="Compreensão, expressão, pragmática, fonologia..."></textarea></div>
+        <div class="field"><label>Recursos alternativos de comunicação (PECS, gestos, etc.)?</label>
+          <div class="radio-group">
+            <div class="radio-btn"><input type="radio" name="pecs" id="pecs_s" value="Sim"><label for="pecs_s">Sim</label></div>
+            <div class="radio-btn"><input type="radio" name="pecs" id="pecs_n" value="Não"><label for="pecs_n">Não</label></div>
+          </div>
+        </div>
+      </div>
+      <!-- TERAPIA OCUPACIONAL -->
+      <div class="field-group">
+        <div class="field-group-title">Terapia Ocupacional</div>
+        <div class="grid-2">
+          <div class="field"><label>Nome</label><input type="text" id="to_nome"></div>
+          <div class="field"><label>Contato</label><input type="tel" id="to_tel"></div>
+        </div>
+        <div class="field"><label>Queixas sensoriais ou motoras</label><textarea id="to_queixas"></textarea></div>
+        <div class="field"><label>Objetivos funcionais</label><textarea id="to_obj"></textarea></div>
+        <div class="field"><label>Adaptações sugeridas</label><textarea id="to_adapt"></textarea></div>
+      </div>
+      <!-- OUTROS PROFISSIONAIS -->
+      <div class="field-group">
+        <div class="field-group-title">Outros Profissionais</div>
+        <div class="subsection-label">Nutricionista</div>
+        <div class="grid-2">
+          <div class="field"><label>Nome</label><input type="text" id="nutri_nome"></div>
+          <div class="field"><label>Contato</label><input type="tel" id="nutri_tel"></div>
+        </div>
+        <div class="subsection-label">Psicopedagogo</div>
+        <div class="grid-2">
+          <div class="field"><label>Nome</label><input type="text" id="psipeda_nome"></div>
+          <div class="field"><label>Contato</label><input type="tel" id="psipeda_tel"></div>
+        </div>
+        <div class="subsection-label">Psicomotricista</div>
+        <div class="grid-2">
+          <div class="field"><label>Nome</label><input type="text" id="psimot_nome"></div>
+          <div class="field"><label>Contato</label><input type="tel" id="psimot_tel"></div>
+        </div>
+        <div class="subsection-label">Acompanhante Terapêutico</div>
+        <div class="grid-2">
+          <div class="field"><label>Nome</label><input type="text" id="at_nome"></div>
+          <div class="field"><label>Contato</label><input type="tel" id="at_tel"></div>
+        </div>
+        <div class="subsection-label">Musicoterapia</div>
+        <div class="grid-2">
+          <div class="field"><label>Nome</label><input type="text" id="musico_nome"></div>
+          <div class="field"><label>Contato</label><input type="tel" id="musico_tel"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- S6: COMUNICAÇÃO E LINGUAGEM -->
+    <div class="section" data-section="5">
+      <div class="section-header">
+        <div class="section-tag">Seção 6</div>
+        <h2 class="section-title">Comunicação e Linguagem</h2>
+        <div class="section-divider"></div>
+      </div>
+      <div class="field-group">
+        <div class="field"><label>Atraso no desenvolvimento da linguagem?</label>
+          <div class="radio-group">
+            <div class="radio-btn"><input type="radio" name="atraso_ling" id="al2_s" value="Sim"><label for="al2_s">Sim</label></div>
+            <div class="radio-btn"><input type="radio" name="atraso_ling" id="al2_n" value="Não"><label for="al2_n">Não</label></div>
+          </div>
+        </div>
+        <div class="field"><label>Como a criança se comunica?</label>
+          <textarea id="como_comunica" placeholder="Gestos, apontar, trocas de figura, dispositivos, fala..."></textarea>
+        </div>
+        <div class="field"><label>Uso de linguagem repetitiva (ecolalia)?</label>
+          <div class="radio-group">
+            <div class="radio-btn"><input type="radio" name="ecolalia" id="ec_s" value="Sim"><label for="ec_s">Sim</label></div>
+            <div class="radio-btn"><input type="radio" name="ecolalia" id="ec_n" value="Não"><label for="ec_n">Não</label></div>
+          </div>
+        </div>
+        <div class="field"><label>Tenta iniciar ou manter conversas?</label>
+          <div class="radio-group">
+            <div class="radio-btn"><input type="radio" name="conv_init" id="ci_s" value="Sim"><label for="ci_s">Sim</label></div>
+            <div class="radio-btn"><input type="radio" name="conv_init" id="ci_n" value="Não"><label for="ci_n">Não</label></div>
+          </div>
+        </div>
+        <div class="field"><label>Vocabulário adequado à idade?</label>
+          <div class="radio-group">
+            <div class="radio-btn"><input type="radio" name="vocab" id="vo_s" value="Sim"><label for="vo_s">Sim</label></div>
+            <div class="radio-btn"><input type="radio" name="vocab" id="vo_n" value="Não"><label for="vo_n">Não</label></div>
+          </div>
+        </div>
+        <div class="field"><label>Fala compreensível para outras pessoas?</label>
+          <div class="radio-group">
+            <div class="radio-btn"><input type="radio" name="fala_comp" id="fc_s" value="Sim"><label for="fc_s">Sim</label></div>
+            <div class="radio-btn"><input type="radio" name="fala_comp" id="fc_n" value="Não"><label for="fc_n">Não</label></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- S7: INTERAÇÃO SOCIAL E COMPORTAMENTO -->
+    <div class="section" data-section="6">
+      <div class="section-header">
+        <div class="section-tag">Seção 7</div>
+        <h2 class="section-title">Interação Social e Comportamento</h2>
+        <div class="section-divider"></div>
+      </div>
+      <div class="field-group">
+        <div class="field"><label>Procura interagir com pessoas próximas?</label>
+          <div class="radio-group">
+            <div class="radio-btn"><input type="radio" name="inter_prox" id="ip_s" value="Sim"><label for="ip_s">Sim</label></div>
+            <div class="radio-btn"><input type="radio" name="inter_prox" id="ip_n" value="Não"><label for="ip_n">Não</label></div>
+          </div>
+        </div>
+        <div class="field"><label>Interage com outras crianças?</label>
+          <div class="radio-group">
+            <div class="radio-btn"><input type="radio" name="inter_cri" id="ic_s" value="Sim"><label for="ic_s">Sim</label></div>
+            <div class="radio-btn"><input type="radio" name="inter_cri" id="ic_n" value="Não"><label for="ic_n">Não</label></div>
+          </div>
+        </div>
+        <div class="field"><label>Demonstra interesse por brincadeiras e jogos?</label>
+          <div class="radio-group">
+            <div class="radio-btn"><input type="radio" name="inter_brinc" id="ib_s" value="Sim"><label for="ib_s">Sim</label></div>
+            <div class="radio-btn"><input type="radio" name="inter_brinc" id="ib_n" value="Não"><label for="ib_n">Não</label></div>
+          </div>
+        </div>
+        <div class="field"><label>Brinca de faz de conta ou imitação?</label>
+          <div class="radio-group">
+            <div class="radio-btn"><input type="radio" name="faz_conta" id="fz_s" value="Sim"><label for="fz_s">Sim</label></div>
+            <div class="radio-btn"><input type="radio" name="faz_conta" id="fz_n" value="Não"><label for="fz_n">Não</label></div>
+          </div>
+        </div>
+        <div class="field"><label>Como brinca? Quais itens prefere?</label>
+          <textarea id="como_brinca" placeholder="Descreva os principais brinquedos e como a criança interage com eles..."></textarea>
+        </div>
+        <div class="field"><label>Como reage a mudanças de rotina?</label>
+          <textarea id="mud_rotina" placeholder="Resiste, aceita, necessita preparo..."></textarea>
+        </div>
+        <div class="field"><label>Movimentos repetitivos / estereotipias?</label>
+          <div class="radio-group">
+            <div class="radio-btn"><input type="radio" name="estereot" id="es_s" value="Sim"><label for="es_s">Sim</label></div>
+            <div class="radio-btn"><input type="radio" name="estereot" id="es_n" value="Não"><label for="es_n">Não</label></div>
+          </div>
+        </div>
+        <div class="field"><label>Hiperfoco / interesses restritos e intensos</label>
+          <textarea id="hiperfoco" placeholder="Descreva..."></textarea>
+        </div>
+        <div class="field"><label>Resposta a frustrações e limites</label>
+          <textarea id="frustracao" placeholder="Choro, birra, agressividade, retirada..."></textarea>
+        </div>
+        <div class="field"><label>Comportamentos heterolesivos ou autolesivos?</label>
+          <div class="radio-group">
+            <div class="radio-btn"><input type="radio" name="autolesivo" id="au_s" value="Sim"><label for="au_s">Sim</label></div>
+            <div class="radio-btn"><input type="radio" name="autolesivo" id="au_n" value="Não"><label for="au_n">Não</label></div>
+          </div>
+        </div>
+        <div class="field"><label>Medos, ansiedades ou sensibilidade sensorial</label>
+          <textarea id="sens_sensorial" placeholder="Som, textura, luz, temperatura..."></textarea>
+        </div>
+      </div>
+    </div>
+
+    <!-- S8: ATIVIDADES, SONO, ALIMENTAÇÃO -->
+    <div class="section" data-section="7">
+      <div class="section-header">
+        <div class="section-tag">Seção 8</div>
+        <h2 class="section-title">Atividades, Sono e Alimentação</h2>
+        <div class="section-divider"></div>
+      </div>
+      <div class="field-group">
+        <div class="field-group-title">Telas e Tempo Livre</div>
+        <div class="field"><label>Tempo médio diário de uso de telas</label>
+          <input type="text" id="telas" placeholder="Ex: 3 horas por dia (TV, tablet, celular, jogos)">
+        </div>
+        <div class="field"><label>Preferências de brincadeiras</label>
+          <input type="text" id="pref_brinc" placeholder="Solitárias, com adultos, com pares...">
+        </div>
+        <div class="field"><label>Brinquedos / itens favoritos</label>
+          <input type="text" id="brinquedos" placeholder="Carros, bonecos, jogos digitais...">
+        </div>
+      </div>
+      <div class="field-group">
+        <div class="field-group-title">Rotina do Sono</div>
+        <div class="grid-2">
+          <div class="field"><label>Horário para dormir</label><input type="text" id="hora_dormir" placeholder="Ex: 21h"></div>
+          <div class="field"><label>Horário de acordar</label><input type="text" id="hora_acordar" placeholder="Ex: 7h"></div>
+        </div>
+        <div class="field"><label>Média de horas de sono</label><input type="number" id="media_sono" step="0.5" min="0" max="24" placeholder="Ex: 9"></div>
+        <div class="field"><label>Dificuldades para dormir</label>
+          <textarea id="dif_sono" placeholder="Despertar noturno, pesadelos, demora para adormecer..."></textarea>
+        </div>
+        <div class="field"><label>Rituais / rotinas para dormir</label>
+          <textarea id="rituais_sono" placeholder="Leitura, música, banho, etc..."></textarea>
+        </div>
+      </div>
+      <div class="field-group">
+        <div class="field-group-title">Alimentação</div>
+        <div class="field"><label>Tipo de alimentação</label>
+          <div class="radio-group">
+            <div class="radio-btn"><input type="radio" name="tipo_alim" id="ta_v" value="Variada"><label for="ta_v">Variada</label></div>
+            <div class="radio-btn"><input type="radio" name="tipo_alim" id="ta_s" value="Seletiva"><label for="ta_s">Seletiva</label></div>
+            <div class="radio-btn"><input type="radio" name="tipo_alim" id="ta_r" value="Restritiva"><label for="ta_r">Restritiva</label></div>
+          </div>
+        </div>
+        <div class="field"><label>Intolerâncias ou restrições alimentares</label>
+          <input type="text" id="intolerancia" placeholder="Lactose, glúten, etc...">
+        </div>
+        <div class="field"><label>Seletividade / rejeição a texturas ou temperaturas</label>
+          <textarea id="seletiv_alim"></textarea>
+        </div>
+        <div class="field"><label>Horários e rotina alimentar</label>
+          <input type="text" id="rotina_alim" placeholder="Ex: café às 7h, lanche às 10h, almoço às 12h...">
+        </div>
+        <div class="field"><label>Uso de suplementos ou fórmulas?</label>
+          <div class="radio-group">
+            <div class="radio-btn"><input type="radio" name="suplem" id="su_s" value="Sim"><label for="su_s">Sim</label></div>
+            <div class="radio-btn"><input type="radio" name="suplem" id="su_n" value="Não"><label for="su_n">Não</label></div>
+          </div>
+        </div>
+        <div class="field"><label>Episódios de engasgo, refluxo ou vômitos?</label>
+          <div class="radio-group">
+            <div class="radio-btn"><input type="radio" name="refluxo" id="re_s2" value="Sim"><label for="re_s2">Sim</label></div>
+            <div class="radio-btn"><input type="radio" name="refluxo" id="re_n2" value="Não"><label for="re_n2">Não</label></div>
+          </div>
+        </div>
+        <div class="field"><label>Funcionamento intestinal / fezes</label>
+          <textarea id="fezes" placeholder="Frequência, consistência, cor..."></textarea>
+        </div>
+      </div>
+    </div>
+
+    <!-- S9: HIGIENE E AUTONOMIA -->
+    <div class="section" data-section="8">
+      <div class="section-header">
+        <div class="section-tag">Seção 9</div>
+        <h2 class="section-title">Higiene e Autonomia</h2>
+        <div class="section-divider"></div>
+      </div>
+      <div class="field-group">
+        <div class="field"><label>Nível de autonomia em higiene</label>
+          <textarea id="autonomia" placeholder="Trocar roupa, escovar dente, ir ao banheiro, banho..."></textarea>
+        </div>
+        <div class="field"><label>Enurese / encoprese?</label>
+          <div class="radio-group">
+            <div class="radio-btn"><input type="radio" name="enurese" id="en_s" value="Sim" onchange="toggleConditional('en_detalhe', true)"><label for="en_s">Sim</label></div>
+            <div class="radio-btn"><input type="radio" name="enurese" id="en_n" value="Não" onchange="toggleConditional('en_detalhe', false)"><label for="en_n">Não</label></div>
+          </div>
+          <div class="conditional" id="en_detalhe">
+            <div class="field"><label>Frequência</label><input type="text" id="en_freq" placeholder="Ex: diária, algumas vezes por semana"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- S10: HISTÓRICO FAMILIAR -->
+    <div class="section" data-section="9">
+      <div class="section-header">
+        <div class="section-tag">Seção 10</div>
+        <h2 class="section-title">Histórico Familiar</h2>
+        <div class="section-divider"></div>
+      </div>
+      <div class="field-group">
+        <div class="field"><label>Antecedentes familiares (TDAH, autismo, transtornos psiquiátricos, etc.)?</label>
+          <div class="radio-group">
+            <div class="radio-btn"><input type="radio" name="antec_fam" id="af_s" value="Sim"><label for="af_s">Sim</label></div>
+            <div class="radio-btn"><input type="radio" name="antec_fam" id="af_n" value="Não"><label for="af_n">Não</label></div>
+          </div>
+        </div>
+        <div class="field"><label>Estrutura familiar (quem mora com a criança)</label>
+          <textarea id="estrut_fam" placeholder="Pais, irmãos, avós, outros..."></textarea>
+        </div>
+        <div class="field"><label>Relação entre os pais / responsáveis</label>
+          <textarea id="rel_pais" placeholder="Casados, separados, conflituosa, harmoniosa..."></textarea>
+        </div>
+        <div class="field"><label>Rede de apoio (avós, parentes, frequência)</label>
+          <textarea id="rede_apoio" placeholder="Quem ajuda, com que frequência..."></textarea>
+        </div>
+      </div>
+    </div>
+
+    <!-- S11: ROTINA DIÁRIA -->
+    <div class="section" data-section="10">
+      <div class="section-header">
+        <div class="section-tag">Seção 11</div>
+        <h2 class="section-title">Rotina Diária</h2>
+        <div class="section-divider"></div>
+      </div>
+      <div class="field-group">
+        <div class="field-group-title">Um dia típico da criança</div>
+        <div class="field"><label>Manhã</label><textarea id="rot_manha" placeholder="Descreva as atividades da manhã..."></textarea></div>
+        <div class="field"><label>Tarde</label><textarea id="rot_tarde" placeholder="Descreva as atividades da tarde..."></textarea></div>
+        <div class="field"><label>Noite</label><textarea id="rot_noite" placeholder="Descreva as atividades noturnas..."></textarea></div>
+      </div>
+      <div class="field-group">
+        <div class="field"><label>Com quem passa a maior parte do tempo?</label>
+          <textarea id="maior_tempo" placeholder="Na escola, com familiares, sozinho, em dispositivos..."></textarea>
+        </div>
+        <div class="field"><label>Atividades que mais gosta</label>
+          <textarea id="ativ_gosta"></textarea>
+        </div>
+        <div class="field"><label>Há regras e combinados em casa?</label>
+          <div class="radio-group">
+            <div class="radio-btn"><input type="radio" name="regras" id="rg_s" value="Sim"><label for="rg_s">Sim</label></div>
+            <div class="radio-btn"><input type="radio" name="regras" id="rg_n" value="Não"><label for="rg_n">Não</label></div>
+          </div>
+        </div>
+        <div class="field"><label>A família participa dos atendimentos?</label>
+          <div class="radio-group">
+            <div class="radio-btn"><input type="radio" name="fam_atend" id="fa_s" value="Sim"><label for="fa_s">Sim</label></div>
+            <div class="radio-btn"><input type="radio" name="fam_atend" id="fa_n" value="Não"><label for="fa_n">Não</label></div>
+          </div>
+        </div>
+        <div class="field"><label>Comportamentos em diferentes ambientes</label>
+          <textarea id="comp_ambientes" placeholder="Casa, escola, festas, lugares públicos..."></textarea>
+        </div>
+      </div>
+      <div class="field-group">
+        <div class="field-group-title">Pais e Atividades Extracurriculares</div>
+        <div class="field"><label>Atividades fora da escola</label>
+          <input type="text" id="extracurr" placeholder="Esporte, música, reforço escolar...">
+        </div>
+        <div class="field"><label>Condições de trabalho dos pais</label>
+          <textarea id="trab_pais" placeholder="Horários, disponibilidade para acompanhamento..."></textarea>
+        </div>
+        <div class="field"><label>Tempo de qualidade com a criança</label>
+          <textarea id="temp_qual"></textarea>
+        </div>
+      </div>
+    </div>
+
+    <!-- S12: OBJETIVOS -->
+    <div class="section" data-section="11">
+      <div class="section-header">
+        <div class="section-tag">Seção 12</div>
+        <h2 class="section-title">Objetivos e Expectativas</h2>
+        <div class="section-divider"></div>
+      </div>
+      <div class="field-group">
+        <div class="field"><label>Expectativas — Curto prazo</label>
+          <textarea id="obj_curto" placeholder="O que a família espera alcançar em breve..."></textarea>
+        </div>
+        <div class="field"><label>Expectativas — Médio prazo</label>
+          <textarea id="obj_medio" placeholder="Metas para os próximos meses..."></textarea>
+        </div>
+        <div class="field"><label>Expectativas — Longo prazo</label>
+          <textarea id="obj_longo" placeholder="Perspectivas para o futuro..."></textarea>
+        </div>
+        <div class="field"><label>Objetivos prioritários</label>
+          <textarea id="obj_prio" placeholder="O que a família considera mais importante no tratamento..."></textarea>
+        </div>
+      </div>
+    </div>
+
+    <!-- S13: OBSERVAÇÕES DO PROFISSIONAL -->
+    <div class="section" data-section="12">
+      <div class="section-header">
+        <div class="section-tag">Seção 13</div>
+        <h2 class="section-title">Observações do Profissional</h2>
+        <div class="section-divider"></div>
+      </div>
+      <div class="field-group">
+        <div class="field"><label>Impressões iniciais / Atitude ao chegar</label>
+          <textarea id="imp_iniciais"></textarea>
+        </div>
+        <div class="field"><label>Interesse e atenção na atividade proposta</label>
+          <textarea id="int_atividade"></textarea>
+        </div>
+        <div class="field"><label>Linguagem / expressividade durante a anamnese</label>
+          <textarea id="expr_anamnese"></textarea>
+        </div>
+        <div class="field"><label>Comportamentos observados relevantes</label>
+          <textarea id="comp_obs"></textarea>
+        </div>
+      </div>
+
+      <div class="field-group">
+        <div class="field-group-title">Sugestão de Encaminhamento Inicial</div>
+        <p style="font-size:0.82rem;color:var(--mid-gray);margin-bottom:16px;">Selecione os encaminhamentos indicados:</p>
+        <div class="checkbox-group" style="flex-direction: column; gap: 8px;">
+          <div class="check-btn"><input type="checkbox" id="enc_psico" value="Psicologia"><label for="enc_psico">Psicologia</label></div>
+          <div class="check-btn" style="margin-left: 20px;"><input type="checkbox" id="enc_psicoter" value="Psicoterapia"><label for="enc_psicoter">↳ Psicoterapia</label></div>
+          <div class="check-btn" style="margin-left: 20px;"><input type="checkbox" id="enc_aba" value="ABA"><label for="enc_aba">↳ ABA (Análise do Comportamento)</label></div>
+          <div class="check-btn"><input type="checkbox" id="enc_fono" value="Fonoaudiologia"><label for="enc_fono">Fonoaudiologia</label></div>
+          <div class="check-btn"><input type="checkbox" id="enc_to" value="Terapia Ocupacional"><label for="enc_to">Terapia Ocupacional</label></div>
+          <div class="check-btn"><input type="checkbox" id="enc_psipeda" value="Psicopedagogia"><label for="enc_psipeda">Psicopedagogia</label></div>
+          <div class="check-btn"><input type="checkbox" id="enc_nutri" value="Nutricionista"><label for="enc_nutri">Nutricionista</label></div>
+          <div class="check-btn"><input type="checkbox" id="enc_musico" value="Musicoterapia"><label for="enc_musico">Musicoterapia</label></div>
+          <div class="check-btn"><input type="checkbox" id="enc_psimot" value="Psicomotricidade"><label for="enc_psimot">Psicomotricidade</label></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- S14: FINALIZAÇÃO -->
+    <div class="section" data-section="13">
+      <div class="section-header">
+        <div class="section-tag">Seção 14</div>
+        <h2 class="section-title">Finalização</h2>
+        <div class="section-divider"></div>
+      </div>
+      <div class="field-group">
+        <div class="field"><label>Profissional responsável pelo preenchimento</label>
+          <input type="text" id="prof_resp" placeholder="Nome e especialidade">
+        </div>
+        <div class="field"><label>Data de preenchimento</label>
+          <input type="date" id="data_preench">
+        </div>
+        <div class="field"><label>Observações finais / Anotações adicionais</label>
+          <textarea id="obs_finais" style="min-height:120px"></textarea>
+        </div>
+      </div>
+
+      <div class="field-group" style="background: var(--cream); border-style: dashed;">
+        <div class="finish-screen">
+          <div class="finish-icon">✓</div>
+          <h2>Ficha completa!</h2>
+          <p>Todas as seções foram preenchidas.<br>Clique abaixo para gerar o PDF com o nome do paciente.</p>
+          <button class="btn btn-generate" onclick="generatePDF()">⬇ Gerar PDF da Anamnese</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- NAVIGATION BUTTONS -->
+    <div class="nav-buttons" id="nav-buttons">
+      <button class="btn btn-secondary" id="btn-prev" onclick="navigate(-1)" style="visibility:hidden">← Anterior</button>
+      <button class="btn btn-primary" id="btn-next" onclick="navigate(1)">Próxima seção →</button>
+    </div>
+
+  </main>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const SECTIONS = [
+  "Identificação da Criança",
+  "Dados Escolares",
+  "Quadro Diagnóstico",
+  "Gestação e Nascimento",
+  "Atendimentos Atuais",
+  "Comunicação e Linguagem",
+  "Interação Social e Comportamento",
+  "Atividades, Sono e Alimentação",
+  "Higiene e Autonomia",
+  "Histórico Familiar",
+  "Rotina Diária",
+  "Objetivos e Expectativas",
+  "Observações do Profissional",
+  "Finalização"
+];
+
+let currentSection = 0;
+const totalSections = SECTIONS.length;
+
+// Build nav
+const navList = document.getElementById('nav-list');
+SECTIONS.forEach((name, i) => {
+  const div = document.createElement('div');
+  div.className = 'nav-item' + (i === 0 ? ' active' : '');
+  div.id = `nav-${i}`;
+  div.innerHTML = `<div class="nav-dot"></div><span>${name}</span>`;
+  div.onclick = () => goTo(i);
+  navList.appendChild(div);
+});
+
+function goTo(idx) {
+  document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+
+  const sections = document.querySelectorAll('.section');
+  sections[idx].classList.add('active');
+  document.getElementById(`nav-${idx}`).classList.add('active');
+  currentSection = idx;
+
+  document.getElementById('btn-prev').style.visibility = idx === 0 ? 'hidden' : 'visible';
+  document.getElementById('btn-next').textContent = idx === totalSections - 1 ? 'Concluído ✓' : 'Próxima seção →';
+
+  updateProgress();
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+  saveData();
+}
+
+function navigate(dir) {
+  const next = currentSection + dir;
+  if (next < 0 || next >= totalSections) return;
+  document.getElementById(`nav-${currentSection}`).classList.add('completed');
+  goTo(next);
+}
+
+function updateProgress() {
+  const pct = Math.round(((currentSection + 1) / totalSections) * 100);
+  document.getElementById('progress-bar').style.width = pct + '%';
+  document.getElementById('progress-label').textContent = `Etapa ${currentSection + 1} de ${totalSections}`;
+}
+
+function toggleConditional(id, show) {
+  document.getElementById(id).classList.toggle('show', show);
+}
+
+// AUTO-SAVE to sessionStorage
+function saveData() {
+  const data = {};
+  document.querySelectorAll('input, textarea, select').forEach(el => {
+    if (!el.id) return;
+    if (el.type === 'radio' || el.type === 'checkbox') {
+      if (el.checked) data[el.id] = el.value;
+    } else {
+      data[el.id] = el.value;
+    }
+  });
+  sessionStorage.setItem('anamnese_bemviver', JSON.stringify(data));
+}
+
+function loadData() {
+  const saved = sessionStorage.getItem('anamnese_bemviver');
+  if (!saved) return;
+  const data = JSON.parse(saved);
+  Object.entries(data).forEach(([id, val]) => {
+    const el = document.getElementById(id);
+    if (!el) return;
+    if (el.type === 'radio' || el.type === 'checkbox') {
+      el.checked = (el.value === val);
+    } else {
+      el.value = val;
+    }
+  });
+}
+
+// Auto-save on any change
+document.querySelectorAll('input, textarea, select').forEach(el => {
+  el.addEventListener('input', saveData);
+  el.addEventListener('change', saveData);
+});
+
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 3000);
+}
+
+function getVal(id) {
+  const el = document.getElementById(id);
+  return el ? el.value.trim() : '';
+}
+function getRadio(name) {
+  const el = document.querySelector(`input[name="${name}"]:checked`);
+  return el ? el.value : '';
+}
+function getChecked(id) {
+  const el = document.getElementById(id);
+  return el && el.checked ? el.value : null;
+}
+
+// PDF GENERATION
+async function generatePDF() {
+  const { jsPDF } = window.jspdf;
+  const nome = getVal('nome') || 'Paciente';
+  const doc = new jsPDF({ unit: 'mm', format: 'a4' });
+
+  const W = 210;
+  const margin = 18;
+  const colW = W - margin * 2;
+  let y = 0;
+
+  function newPage() {
+    doc.addPage();
+    y = 20;
+  }
+
+  function checkY(needed = 10) {
+    if (y + needed > 275) newPage();
+  }
+
+  function header() {
+    // Header bar
+    doc.setFillColor(44, 44, 44);
+    doc.rect(0, 0, W, 28, 'F');
+    doc.setTextColor(247, 244, 239);
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(13);
+    doc.text('FICHA DE ANAMNESE MULTIDISCIPLINAR', W / 2, 11, { align: 'center' });
+    doc.setFontSize(8);
+    doc.setFont('helvetica', 'normal');
+    doc.text('Instituto Bem Viver', W / 2, 18, { align: 'center' });
+    doc.setTextColor(44, 44, 44);
+    y = 36;
+  }
+
+  function sectionTitle(title) {
+    checkY(14);
+    doc.setFillColor(122, 158, 126);
+    doc.rect(margin, y, colW, 7, 'F');
+    doc.setTextColor(255, 255, 255);
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(8.5);
+    doc.text(title.toUpperCase(), margin + 4, y + 5);
+    doc.setTextColor(44, 44, 44);
+    y += 11;
+  }
+
+  function field(label, value) {
+    if (!value) return;
+    checkY(12);
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(7.5);
+    doc.setTextColor(100, 100, 100);
+    doc.text(label, margin, y);
+    y += 4.5;
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(9);
+    doc.setTextColor(44, 44, 44);
+    const lines = doc.splitTextToSize(value, colW);
+    lines.forEach(line => {
+      checkY(6);
+      doc.text(line, margin, y);
+      y += 5;
+    });
+    y += 2;
+  }
+
+  function spacer() { y += 4; }
+
+  // PAGE 1
+  header();
+
+  // Patient name highlight
+  doc.setFillColor(30, 64, 175);
+  doc.setDrawColor(30, 64, 175);
+  doc.roundedRect(margin, y, colW, 16, 3, 3, 'F');
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(8);
+  doc.setTextColor(255, 255, 255);
+  doc.text('PACIENTE', margin + 5, y + 5);
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(15);
+  doc.setTextColor(255, 255, 255);
+  doc.text(nome.toUpperCase(), margin + 5, y + 11);
+  y += 22;
+
+
+  const dataPreench = getVal('data_preench');
+  const profResp = getVal('prof_resp');
+  if (dataPreench || profResp) {
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(8);
+    doc.setTextColor(100, 100, 100);
+    if (dataPreench) doc.text(`Data: ${dataPreench}`, margin, y);
+    if (profResp) doc.text(`Profissional: ${profResp}`, margin + 80, y);
+    y += 8;
+  }
+
+  // S1
+  sectionTitle('1. Identificação da Criança');
+  field('Data de Nascimento', getVal('data_nasc'));
+  field('Idade', getVal('idade') ? getVal('idade') + ' anos' : '');
+  field('Gênero', getRadio('genero') === 'M' ? 'Masculino' : getRadio('genero') === 'F' ? 'Feminino' : '');
+  field('Endereço', getVal('endereco'));
+  field('Naturalidade', getVal('naturalidade'));
+  spacer();
+  doc.setFont('helvetica', 'bold'); doc.setFontSize(8); doc.setTextColor(92, 125, 96);
+  doc.text('Responsáveis', margin, y); y += 5;
+  field('Nome da mãe', getVal('nome_mae'));
+  field('Profissão', getVal('prof_mae'));
+  field('Telefone', getVal('tel_mae'));
+
+  // S2
+  sectionTitle('2. Dados Escolares');
+  field('Escola', getVal('escola'));
+  field('Tipo', getRadio('tipo_escola'));
+  field('Período', getRadio('periodo'));
+  field('Professor(a)', getVal('professor'));
+  field('AT na escola', getRadio('at_escola'));
+  field('Tipo de AT', getRadio('tipo_at'));
+  field('Tempo com AT', getVal('at_tempo'));
+  field('Dificuldades acadêmicas', getVal('dif_acad'));
+  field('Comportamento em sala', getVal('comp_sala'));
+  field('Relação com professores', getVal('rel_prof'));
+  field('Adaptações / ACPs', getVal('acps'));
+  field('Recursos escolares', getRadio('rec_escola'));
+  field('Transporte', getVal('transporte'));
+
+  // S3
+  sectionTitle('3. Quadro Diagnóstico');
+  field('Queixa principal', getVal('queixa'));
+  field('Idade ao diagnóstico', getVal('idade_diag') ? getVal('idade_diag') + ' anos' : '');
+  field('Profissional que diagnosticou', getVal('prof_diag'));
+  field('Tratamentos anteriores', getVal('tratamentos'));
+  field('Uso de medicação', getRadio('medicacao'));
+  field('Medicamento', getVal('med_nome'));
+  field('Dosagem', getVal('med_dose'));
+  field('Horário', getVal('med_horario'));
+  field('Alergias', getRadio('alergia') + (getVal('al_quais') ? ': ' + getVal('al_quais') : ''));
+  field('Vacinação em dia', getRadio('vacina'));
+  field('Condições crônicas', getVal('cr_quais') || getRadio('cronicas'));
+
+  // S4
+  sectionTitle('4. Gestação e Nascimento');
+  field('Gestação', getVal('gestacao'));
+  field('Tipo de parto', getVal('parto'));
+  field('Peso ao nascer', getVal('peso_nasc') ? getVal('peso_nasc') + ' kg' : '');
+  field('Internação ao nascer', getRadio('intern_nasc'));
+  field('Tempo de aleitamento', getVal('aleitamento'));
+  field('Sentar', getVal('dev_sentar'));
+  field('Engatinhar', getVal('dev_engatinhar'));
+  field('Andar', getVal('dev_andar'));
+  field('Primeiras palavras', getVal('dev_palavras'));
+  field('Controle de fralda', getVal('dev_fralda'));
+  field('Dificuldades motoras', getVal('dif_motora'));
+  field('Atrasos identificados', getRadio('atrasos'));
+  field('Convulsões / traumas', getVal('conv_quais') || getRadio('conv'));
+
+  // S5
+  sectionTitle('5. Atendimentos Atuais');
+  const professionals = [
+    { label: 'Psiquiatra', nome: getVal('psiq_nome'), tel: getVal('psiq_tel'), extra: [['Diagnóstico', getVal('psiq_diag')], ['Frequência', getVal('psiq_freq')]] },
+    { label: 'Neuropediatra', nome: getVal('neuro_nome'), tel: getVal('neuro_tel'), extra: [['Recomendações', getVal('neuro_rec')], ['Sinais', getVal('neuro_sinais')]] },
+    { label: 'Psicólogo', nome: getVal('psico_nome'), tel: getVal('psico_tel'), extra: [['Objetivos', getVal('psico_obj')], ['Estratégias', getVal('psico_est')]] },
+    { label: 'Fonoaudiólogo', nome: getVal('fono_nome'), tel: getVal('fono_tel'), extra: [['Nível de linguagem', getVal('fono_ling')]] },
+    { label: 'Terapia Ocupacional', nome: getVal('to_nome'), tel: getVal('to_tel'), extra: [['Queixas', getVal('to_queixas')], ['Objetivos', getVal('to_obj')]] },
+    { label: 'Nutricionista', nome: getVal('nutri_nome'), tel: getVal('nutri_tel'), extra: [] },
+    { label: 'Psicopedagogo', nome: getVal('psipeda_nome'), tel: getVal('psipeda_tel'), extra: [] },
+    { label: 'Psicomotricista', nome: getVal('psimot_nome'), tel: getVal('psimot_tel'), extra: [] },
+    { label: 'Acompanhante Terapêutico', nome: getVal('at_nome'), tel: getVal('at_tel'), extra: [] },
+    { label: 'Musicoterapia', nome: getVal('musico_nome'), tel: getVal('musico_tel'), extra: [] },
+  ];
+  professionals.forEach(p => {
+    if (!p.nome && !p.tel) return;
+    field(p.label, [p.nome, p.tel].filter(Boolean).join(' | '));
+    p.extra.forEach(([l, v]) => { if (v) field(l, v); });
+  });
+
+  // S6
+  sectionTitle('6. Comunicação e Linguagem');
+  field('Atraso na linguagem', getRadio('atraso_ling'));
+  field('Como se comunica', getVal('como_comunica'));
+  field('Ecolalia', getRadio('ecolalia'));
+  field('Inicia / mantém conversas', getRadio('conv_init'));
+  field('Vocabulário adequado à idade', getRadio('vocab'));
+  field('Fala compreensível', getRadio('fala_comp'));
+
+  // S7
+  sectionTitle('7. Interação Social e Comportamento');
+  field('Interação com pessoas próximas', getRadio('inter_prox'));
+  field('Interação com outras crianças', getRadio('inter_cri'));
+  field('Interesse por brincadeiras', getRadio('inter_brinc'));
+  field('Faz de conta / imitação', getRadio('faz_conta'));
+  field('Como brinca', getVal('como_brinca'));
+  field('Reação a mudanças de rotina', getVal('mud_rotina'));
+  field('Movimentos repetitivos', getRadio('estereot'));
+  field('Hiperfoco / interesses restritos', getVal('hiperfoco'));
+  field('Resposta a frustrações', getVal('frustracao'));
+  field('Comportamentos autolesivos', getRadio('autolesivo'));
+  field('Sensibilidade sensorial', getVal('sens_sensorial'));
+
+  // S8
+  sectionTitle('8. Atividades, Sono e Alimentação');
+  field('Uso de telas (diário)', getVal('telas'));
+  field('Preferência de brincadeiras', getVal('pref_brinc'));
+  field('Brinquedos favoritos', getVal('brinquedos'));
+  field('Horário de dormir', getVal('hora_dormir'));
+  field('Horário de acordar', getVal('hora_acordar'));
+  field('Média de sono', getVal('media_sono') ? getVal('media_sono') + 'h' : '');
+  field('Dificuldades com sono', getVal('dif_sono'));
+  field('Rituais para dormir', getVal('rituais_sono'));
+  field('Tipo de alimentação', getRadio('tipo_alim'));
+  field('Intolerâncias', getVal('intolerancia'));
+  field('Seletividade alimentar', getVal('seletiv_alim'));
+  field('Rotina alimentar', getVal('rotina_alim'));
+  field('Uso de suplementos', getRadio('suplem'));
+  field('Refluxo / engasgo', getRadio('refluxo'));
+  field('Funcionamento intestinal', getVal('fezes'));
+
+  // S9
+  sectionTitle('9. Higiene e Autonomia');
+  field('Nível de autonomia', getVal('autonomia'));
+  field('Enurese / encoprese', getRadio('enurese') + (getVal('en_freq') ? ' — Freq: ' + getVal('en_freq') : ''));
+
+  // S10
+  sectionTitle('10. Histórico Familiar');
+  field('Antecedentes familiares', getRadio('antec_fam'));
+  field('Estrutura familiar', getVal('estrut_fam'));
+  field('Relação entre pais', getVal('rel_pais'));
+  field('Rede de apoio', getVal('rede_apoio'));
+
+  // S11
+  sectionTitle('11. Rotina Diária');
+  field('Manhã', getVal('rot_manha'));
+  field('Tarde', getVal('rot_tarde'));
+  field('Noite', getVal('rot_noite'));
+  field('Maior parte do tempo com', getVal('maior_tempo'));
+  field('Atividades que gosta', getVal('ativ_gosta'));
+  field('Regras em casa', getRadio('regras'));
+  field('Família participa dos atendimentos', getRadio('fam_atend'));
+  field('Comportamentos em ambientes', getVal('comp_ambientes'));
+  field('Atividades extracurriculares', getVal('extracurr'));
+  field('Trabalho dos pais', getVal('trab_pais'));
+  field('Tempo de qualidade', getVal('temp_qual'));
+
+  // S12
+  sectionTitle('12. Objetivos e Expectativas');
+  field('Curto prazo', getVal('obj_curto'));
+  field('Médio prazo', getVal('obj_medio'));
+  field('Longo prazo', getVal('obj_longo'));
+  field('Objetivos prioritários', getVal('obj_prio'));
+
+  // S13
+  sectionTitle('13. Observações do Profissional');
+  field('Impressões iniciais', getVal('imp_iniciais'));
+  field('Interesse na atividade', getVal('int_atividade'));
+  field('Linguagem durante anamnese', getVal('expr_anamnese'));
+  field('Comportamentos observados', getVal('comp_obs'));
+
+  const encaminhamentos = ['enc_psico','enc_psicoter','enc_aba','enc_fono','enc_to','enc_psipeda','enc_nutri','enc_musico','enc_psimot']
+    .map(id => getChecked(id)).filter(Boolean).join(', ');
+  if (encaminhamentos) field('Encaminhamentos sugeridos', encaminhamentos);
+
+  // Obs finais
+  if (getVal('obs_finais')) {
+    sectionTitle('Observações Finais');
+    field('', getVal('obs_finais'));
+  }
+
+  // Footer on each page
+  const totalPages = doc.internal.getNumberOfPages();
+  for (let i = 1; i <= totalPages; i++) {
+    doc.setPage(i);
+    doc.setDrawColor(200, 200, 200);
+    doc.line(margin, 285, W - margin, 285);
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(7);
+    doc.setTextColor(150, 150, 150);
+    doc.text('Instituto Bem Viver — Ficha de Anamnese Multidisciplinar', margin, 290);
+    doc.text(`Pág. ${i} / ${totalPages}`, W - margin, 290, { align: 'right' });
+  }
+
+  const filename = `anamnese_${nome.replace(/\s+/g, '_').toLowerCase()}.pdf`;
+  doc.save(filename);
+  showToast(`PDF "${filename}" gerado com sucesso!`);
+}
+
+// Load saved on start
+loadData();
+updateProgress();
+</script>
+</body>
+</html>
