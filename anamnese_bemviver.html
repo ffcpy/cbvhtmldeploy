@@ -376,9 +376,42 @@
 
   @media(max-width: 900px) {
     .sidebar { display: none; }
-    .main { padding: 24px; }
+    .main { padding: 32px; max-width: 100%; }
     .header { padding: 20px 24px; }
     .grid-2 { grid-template-columns: 1fr; }
+    .section-title { font-size: 1.6rem; }
+    .field-group { padding: 22px; }
+    .nav-buttons .btn { padding: 12px 28px; font-size: 0.95rem; }
+  }
+
+  @media(max-width: 600px) {
+    .header {
+      padding: 16px;
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 12px;
+    }
+    .header-left h1 { font-size: 1.1rem; }
+    .progress-wrap { width: 100%; }
+    .progress-bar-outer { flex: 1; }
+
+    .main { padding: 16px; }
+
+    .field-group { padding: 18px; }
+
+    .section-title { font-size: 1.4rem; }
+
+    .option-group { flex-direction: column; }
+
+    .nav-buttons {
+      flex-direction: column;
+      gap: 10px;
+      padding: 16px;
+    }
+    .nav-buttons .btn { width: 100%; text-align: center; }
+
+    .btn-generate { width: 100%; }
+    .btn-secondary { width: 100%; }
   }
 </style>
 </head>
